@@ -1,0 +1,2 @@
+#define CAM_MODE_DTSI	CONCATS(tegra194-camera-,CAM_MODE,-mode.dtsi)
+#include CAM_MODE_DTSI

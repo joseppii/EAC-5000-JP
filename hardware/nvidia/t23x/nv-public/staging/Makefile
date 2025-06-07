@@ -16,6 +16,12 @@ dtb-y += tegra234-p3768-0000+p3767-0001.dtb
 dtb-y += tegra234-p3768-0000+p3767-0003.dtb
 dtb-y += tegra234-p3768-0000+p3767-0004.dtb
 
+#
+# eac-5000 platform
+#
+dtb-y += tegra234-eac5000-000d+p3701-0004.dtb
+dtb-y += tegra234-eac5000-000d+p3701-0005.dtb
+
 ifneq ($(dtb-y),)
 dtb-y := $(addprefix $(makefile-path)/,$(dtb-y))
 endif

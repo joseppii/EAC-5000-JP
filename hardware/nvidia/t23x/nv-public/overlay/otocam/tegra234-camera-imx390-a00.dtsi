@@ -1,0 +1,407 @@
+// SPDX-License-Identifier: GPL-2.0-only
+// SPDX-FileCopyrightText: Copyright (c) 2018-2023, NVIDIA CORPORATION & AFFILIATES.  All rights reserved.
+#define CSI_PORT_CHANS	(CSI_NUM_CHANS/CSI_NUM_PORTS)
+#define CSI_PORT_IDX(i)	(i/CSI_PORT_CHANS*(CSI_PORT_LANES/2))
+#define CSI_PORT_IDX6(i)	((CSI_PORT_IDX(i)<6)?CSI_PORT_IDX(i):5)
+#define VCID(i)	(i%CSI_PORT_CHANS)
+
+/ {
+#ifdef DTS_OVERLAY
+	fragment-camera@10 {
+		target-path = "/";
+		__overlay__ {
+#endif
+			capture_vi_base: tegra-capture-vi {
+				num-channels = <CSI_NUM_CHANS>;
+				ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					port@0 {
+						reg = <0>;
+						imx390_vi_in0: endpoint {
+							vc-id = <0>;
+							port-index = <0>;
+							bus-width = <CSI_PORT_LANES>;
+							remote-endpoint = <&imx390_csi_out0>;
+						};
+					};
+					port@1 {
+						reg = <1>;
+						imx390_vi_in1: endpoint {
+							vc-id = <VCID(1)>;
+							port-index = <CSI_PORT_IDX(1)>;
+							bus-width = <CSI_PORT_LANES>;
+							remote-endpoint = <&imx390_csi_out1>;
+						};
+					};
+					port@2 {
+						reg = <2>;
+						imx390_vi_in2: endpoint {
+							vc-id = <VCID(2)>;
+							port-index = <CSI_PORT_IDX(2)>;
+							bus-width = <CSI_PORT_LANES>;
+							remote-endpoint = <&imx390_csi_out2>;
+						};
+					};
+					port@3 {
+						reg = <3>;
+						imx390_vi_in3: endpoint {
+							vc-id = <VCID(3)>;
+							port-index = <CSI_PORT_IDX(3)>;
+							bus-width = <CSI_PORT_LANES>;
+							remote-endpoint = <&imx390_csi_out3>;
+						};
+					};
+				};
+			};
+
+			bus@0{
+				host1x@13e00000 {
+					csi_base: nvcsi@15a00000 {
+						num-channels = <CSI_NUM_CHANS>;
+						#address-cells = <1>;
+						#size-cells = <0>;
+						channel@0 {
+							reg = <0>;
+							ports {
+								#address-cells = <1>;
+								#size-cells = <0>;
+								port@0 {
+									reg = <0>;
+									imx390_csi_in0: endpoint@0 {
+										port-index = <0>;
+										bus-width = <CSI_PORT_LANES>;
+										remote-endpoint = <&imx390_cam_out0>;
+									};
+								};
+								port@1 {
+									reg = <1>;
+									imx390_csi_out0: endpoint@1 {
+										remote-endpoint = <&imx390_vi_in0>;
+									};
+								};
+							};
+						};
+						channel@1 {
+							reg = <1>;
+							ports {
+								#address-cells = <1>;
+								#size-cells = <0>;
+								port@0 {
+									reg = <0>;
+									imx390_csi_in1: endpoint@2 {
+										port-index = <CSI_PORT_IDX(1)>;
+										bus-width = <CSI_PORT_LANES>;
+										remote-endpoint = <&imx390_cam_out1>;
+									};
+								};
+								port@1 {
+									reg = <1>;
+									imx390_csi_out1: endpoint@3 {
+										remote-endpoint = <&imx390_vi_in1>;
+									};
+								};
+							};
+						};
+						channel@2 {
+							reg = <2>;
+							ports {
+								#address-cells = <1>;
+								#size-cells = <0>;
+								port@0 {
+									reg = <0>;
+									imx390_csi_in2: endpoint@4 {
+										port-index = <CSI_PORT_IDX(2)>;
+										bus-width = <CSI_PORT_LANES>;
+										remote-endpoint = <&imx390_cam_out2>;
+									};
+								};
+								port@1 {
+									reg = <1>;
+									imx390_csi_out2: endpoint@5 {
+										remote-endpoint = <&imx390_vi_in2>;
+									};
+								};
+							};
+						};
+						channel@3 {
+							reg = <3>;
+							ports {
+								#address-cells = <1>;
+								#size-cells = <0>;
+								port@0 {
+									reg = <0>;
+									imx390_csi_in3: endpoint@6 {
+										port-index = <CSI_PORT_IDX(3)>;
+										bus-width = <CSI_PORT_LANES>;
+										remote-endpoint = <&imx390_cam_out3>;
+									};
+								};
+								port@1 {
+									reg = <1>;
+									imx390_csi_out3: endpoint@7 {
+										remote-endpoint = <&imx390_vi_in3>;
+									};
+								};
+							};
+						};
+					};
+				};
+			};
+#ifdef DTS_OVERLAY
+		};
+	};
+#endif
+};
+
+			&cam_0 {
+				devnode = "video0";
+				#include "tegra194-camera-all-mode.dtsi"
+				mode0 {
+					tegra_sinterface = "serial_a";
+					vc_id = "0";
+				};
+				ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					port@0 {
+						reg = <0>;
+						imx390_cam_out0: endpoint {
+							vc-id = <0>;
+							port-index = <0>;
+							bus-width = <CSI_PORT_LANES>;
+							remote-endpoint = <&imx390_csi_in0>;
+						};
+					};
+				};
+				gmsl-link {
+					src-csi-port = "b";
+					dst-csi-port = "a";
+					serdes-csi-link = "a";
+					csi-mode = "1x4";
+					st-vc = <0>;
+					vc-id = <0>;
+					num-lanes = <CSI_PORT_LANES>;
+					//streams = "ued-u1", "raw12";
+				};
+			};
+			&cam_1 {
+				devnode = "video1";
+				#include "tegra194-camera-all-mode.dtsi"
+				mode0 {
+					tegra_sinterface = "serial_a";
+					vc_id = "1";
+				};
+				ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					port@0 {
+						reg = <0>;
+						imx390_cam_out1: endpoint {
+							vc-id = <VCID(1)>;
+							port-index = <CSI_PORT_IDX(1)>;
+							bus-width = <CSI_PORT_LANES>;
+							remote-endpoint = <&imx390_csi_in1>;
+						};
+					};
+				};
+				gmsl-link {
+					src-csi-port = "b";
+					dst-csi-port = "a";
+					serdes-csi-link = "b";
+					csi-mode = "1x4";
+					st-vc = <0>;
+					vc-id = <VCID(1)>;
+					num-lanes = <CSI_PORT_LANES>;
+					//streams = "ued-u1", "raw12";
+				};
+			};
+			&cam_2 {
+				devnode = "video2";
+				#include "tegra194-camera-all-mode.dtsi"
+				mode0 {
+#if (CSI_SERDES==4)&&(2<CSI_PORT_CHANS)
+					tegra_sinterface = "serial_a";
+#else
+					tegra_sinterface = "serial_c";
+#endif
+					vc_id = "0";
+				};
+				ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					port@0 {
+						reg = <0>;
+						imx390_cam_out2: endpoint {
+							vc-id = <VCID(2)>;
+							port-index = <CSI_PORT_IDX(2)>;
+							bus-width = <CSI_PORT_LANES>;
+							remote-endpoint = <&imx390_csi_in2>;
+						};
+					};
+				};
+				gmsl-link {
+					src-csi-port = "b";
+#if ((2%CSI_SERDES)<CSI_PORT_CHANS)
+					dst-csi-port = "a";
+#else
+					dst-csi-port = "b";
+#endif
+#if (CSI_SERDES==2)
+					serdes-csi-link = "a";
+#else
+					serdes-csi-link = "c";
+#endif
+					csi-mode = "1x4";
+					st-vc = <0>;
+					vc-id = <VCID(2)>;
+					num-lanes = <CSI_PORT_LANES>;
+					//streams = "ued-u1", "raw12";
+				};
+			};
+			&cam_3 {
+				devnode = "video3";
+				#include "tegra194-camera-all-mode.dtsi"
+				mode0 {
+#if (CSI_SERDES==4)&&(3<CSI_PORT_CHANS)
+					tegra_sinterface = "serial_a";
+#else
+					tegra_sinterface = "serial_c";
+#endif
+					vc_id = "1";
+				};
+				ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					port@0 {
+						reg = <0>;
+						imx390_cam_out3: endpoint {
+							vc-id = <VCID(3)>;
+							port-index = <CSI_PORT_IDX(3)>;
+							bus-width = <CSI_PORT_LANES>;
+							remote-endpoint = <&imx390_csi_in3>;
+						};
+					};
+				};
+				gmsl-link {
+					src-csi-port = "b";
+#if ((3%CSI_SERDES)<CSI_PORT_CHANS)
+					dst-csi-port = "a";
+#else
+					dst-csi-port = "b";
+#endif
+#if (CSI_SERDES==2)
+					serdes-csi-link = "b";
+#else
+					serdes-csi-link = "d";
+#endif
+					csi-mode = "1x4";
+					st-vc = <0>;
+					vc-id = <VCID(3)>;
+					num-lanes = <CSI_PORT_LANES>;
+					//streams = "ued-u1", "raw12";
+				};
+			};
+
+/ {
+#ifdef DTS_OVERLAY
+	fragment-camera@13 {
+		target-path = "/";
+		__overlay__ {
+#endif
+			tcp: tegra-camera-platform {
+				compatible = "nvidia, tegra-camera-platform";
+				/**
+				* Physical settings to calculate max ISO BW
+				*
+				* num_csi_lanes = <>;
+				* Total number of CSI lanes when all cameras are active
+				*
+				* max_lane_speed = <>;
+				* Max lane speed in Kbit/s
+				*
+				* min_bits_per_pixel = <>;
+				* Min bits per pixel
+				*
+				* vi_peak_byte_per_pixel = <>;
+				* Max byte per pixel for the VI ISO case
+				*
+				* vi_bw_margin_pct = <>;
+				* Vi bandwidth margin in percentage
+				*
+				* max_pixel_rate = <>;
+				* Max pixel rate in Kpixel/s for the ISP ISO case
+				*
+				* isp_peak_byte_per_pixel = <>;
+				* Max byte per pixel for the ISP ISO case
+				*
+				* isp_bw_margin_pct = <>;
+				* Isp bandwidth margin in percentage
+				*/
+				num_csi_lanes = <(CSI_NUM_PORTS*CSI_PORT_LANES)>;
+				max_lane_speed = <1500000>;
+				min_bits_per_pixel = <10>;
+				vi_peak_byte_per_pixel = <2>;
+				vi_bw_margin_pct = <25>;
+				isp_peak_byte_per_pixel = <5>;
+				isp_bw_margin_pct = <25>;
+				/**
+				 * The general guideline for naming badge_info contains 3 parts, and is as follows,
+				 * The first part is the camera_board_id for the module; if the module is in a FFD
+				 * platform, then use the platform name for this part.
+				 * The second part contains the position of the module, ex. "rear" or "front".
+				 * The third part contains the last 6 characters of a part number which is found
+				 * in the module's specsheet from the vender.
+				 */
+				modules {
+					module0 {
+						badge = "imx390_rear";
+						position = "rear";
+						orientation = "1";
+						drivernode0 {
+							/* Declare PCL support driver (classically known as guid)  */
+							pcl_id = "v4l2_sensor";
+							/* Declare the device-tree hierarchy to driver instance */
+							sysfs-device-tree = CONCATS(/sys/firmware/devicetree/base,I2C_BUS_CAM0,/otocamisp_a@1b);
+						};
+					};
+					module1 {
+						badge = "imx390_front";
+						position = "front";
+						orientation = "1";
+						drivernode0 {
+							/* Declare PCL support driver (classically known as guid)  */
+							pcl_id = "v4l2_sensor";
+							/* Declare the device-tree hierarchy to driver instance */
+							sysfs-device-tree = CONCATS(/sys/firmware/devicetree/base,I2C_BUS_CAM1,/otocamisp_b@1c);
+						};
+					};
+					module2 {
+						badge = "imx390_left";
+						position = "left";
+						orientation = "1";
+						drivernode0 {
+							/* Declare PCL support driver (classically known as guid)  */
+							pcl_id = "v4l2_sensor";
+							/* Declare the device-tree hierarchy to driver instance */
+							sysfs-device-tree = CONCATS(/sys/firmware/devicetree/base,I2C_BUS_CAM2,/otocamisp_c@1b);
+						};
+					};
+					module3 {
+						badge = "imx390_right";
+						position = "right";
+						orientation = "1";
+						drivernode0 {
+							/* Declare PCL support driver (classically known as guid)  */
+							pcl_id = "v4l2_sensor";
+							/* Declare the device-tree hierarchy to driver instance */
+							sysfs-device-tree = CONCATS(/sys/firmware/devicetree/base,I2C_BUS_CAM3,/otocamisp_d@1c);
+						};
+					};
+				};
+			};
+#ifdef DTS_OVERLAY
+		};
+	};
+#endif
+};

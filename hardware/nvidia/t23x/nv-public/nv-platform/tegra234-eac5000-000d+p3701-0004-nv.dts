@@ -1,0 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0-only
+// SPDX-FileCopyrightText: Copyright (c) 2023, NVIDIA CORPORATION & AFFILIATES.  All rights reserved.
+
+/dts-v1/;
+
+#include "staging/tegra234-eac5000-000d+p3701-0004.dts"
+#include "tegra234-eac5000-000d+p3701-xxxx-nv-common.dtsi"
+#include "tegra234-p3701-0000.dtsi"

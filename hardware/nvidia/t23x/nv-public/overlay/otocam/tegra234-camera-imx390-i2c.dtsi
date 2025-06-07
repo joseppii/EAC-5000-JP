@@ -1,0 +1,243 @@
+// SPDX-License-Identifier: GPL-2.0-only
+// SPDX-FileCopyrightText: Copyright (c) 2018-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+#include <dt-bindings/clock/tegra234-clock.h>
+#include <dt-bindings/gpio/tegra234-gpio.h>
+#include <dt-bindings/tegra234-p3737-0000+p3701-0000.h>
+
+#define CAMERA_I2C_MUX_BUS(x) (0x1E + x)
+#define REG(reg)	reg
+
+/* camera control gpio definitions */
+/ {
+#ifdef DTS_OVERLAY
+	fragment@10 {
+		target-path = "/";
+		__overlay__ {
+#endif
+			bus@0{
+				//i2c@3180000 {
+				I2C_BUS {
+#ifdef I2C_MUX_TCA9543
+					tca9543@72 {
+						status = "okay";
+						compatible = "nxp,pca9543";
+						reg = <0x72>;
+						#address-cells = <1>;
+						#size-cells = <0>;
+						skip_mux_detect = "yes";
+						i2c-mux-idle-disconnect;
+#if 1	// def JETSON_AGX_ORIN
+						//vif-supply = <&p3737_vdd_1v8_sys>;
+						//vcc-supply = <&p3737_vdd_1v8_sys>;
+						vcc-supply = <&vdd_1v8_ls>;
+						vcc_lp = "vcc";
+						//vcc-pullup-supply = <&battery_reg>;
+#endif
+						force_bus_start = <CAMERA_I2C_MUX_BUS(0)>;
+#endif
+#ifdef I2C_MUX
+						i2c@0 {
+#ifdef I2C_MUX_TCA9543
+							reg = <0>;
+							i2c-mux,deselect-on-exit;
+							i2c-mux-idle-disconnect;
+							#address-cells = <1>;
+							#size-cells = <0>;
+#endif
+#endif
+#ifdef CSI_SERDES_GMSL
+							dser_a: max9296_a@48 {
+								status = "okay";
+								compatible = "maxim,max9296";
+ #if (CSI_SERDES==2)
+								reg = <0x48>;
+ #else
+								reg = <0x27>;	// FIX:*
+ #endif
+								csi-mode = "2x4";
+								max-src = <CSI_SERDES>;
+								reset-gpios = <&gpio MAX0_PWDN GPIO_ACTIVE_HIGH>;
+								fsync-gpio = <6>;	// FIX:+
+							};
+#ifdef I2C_MUX
+							/*ser_prim:*/ max9295_prim@62 {
+								status = "okay";
+								compatible = "maxim,max9295";
+								reg = <0x62>;
+								is-prim-ser;
+							};
+#endif
+							ser_a: max9295_a@40 {
+								status = "okay";
+								compatible = "maxim,max9295";
+#if (CSI_SERDES==2)&&defined(I2C_MUX)
+								reg = <0x40>;
+#else
+								reg = <REG(0x18)>;
+#endif
+								nvidia,gmsl-dser-device = <&dser_a>;
+							};
+							ser_b: max9295_b@60 {
+								status = "okay";
+								compatible = "maxim,max9295";
+#if (CSI_SERDES==2)&&defined(I2C_MUX)
+								reg = <0x60>;
+#else
+								reg = <REG(0x19)>;
+#endif
+								nvidia,gmsl-dser-device = <&dser_a>;
+							};
+#elif defined(CSI_SERDES_FPDL)
+							dser_a: ub960@30 {
+								compatible = "ti,ub960";
+								reg = <0x30>;
+								csi-mode = "2x4";
+								max-src = <CSI_SERDES>;
+								reset-gpios = <&gpio CAM0_RST_L GPIO_ACTIVE_HIGH>;
+								fsync-gpio = <0>;	// FIX:+
+							};
+							ser_a: ub953@18 {
+								compatible = "ti,ub953";
+								reg = <REG(0x18)>;
+								nvidia,gmsl-dser-device = <&dser_a>;
+							};
+							ser_b: ub953@19 {
+								compatible = "ti,ub953";
+								reg = <REG(0x19)>;
+								nvidia,gmsl-dser-device = <&dser_a>;
+							};
+#endif
+							cam_0: otocamisp_a@1b {
+								status = "okay";
+								reg = <REG(0x1b)>;
+								def-addr = <0x1a>;
+								/* Define any required hw resources needed by driver */
+								/* ie. clocks, io pins, power sources */
+								clocks = <&bpmp TEGRA234_CLK_EXTPERIPH1>,
+									<&bpmp TEGRA234_CLK_EXTPERIPH1>;
+								clock-names = "extperiph1", "pllp_grtba";
+								mclk = "extperiph1";
+								nvidia,gmsl-ser-device = <&ser_a>;
+								nvidia,gmsl-dser-device = <&dser_a>;
+							};
+							cam_1: otocamisp_b@1c {
+								status = "okay";
+								reg = <REG(0x1c)>;
+								def-addr = <0x1a>;
+								/* Define any required hw resources needed by driver */
+								/* ie. clocks, io pins, power sources */
+								clocks = <&bpmp TEGRA234_CLK_EXTPERIPH1>,
+									<&bpmp TEGRA234_CLK_EXTPERIPH1>;
+								clock-names = "extperiph1", "pllp_grtba";
+								mclk = "extperiph1";
+								nvidia,gmsl-ser-device = <&ser_b>;
+								nvidia,gmsl-dser-device = <&dser_a>;
+							};
+#if defined(I2C_MUX)&&(CSI_SERDES==2)
+						};
+						i2c@1 {
+ #ifdef I2C_MUX_TCA9543
+							reg = <1>;
+							i2c-mux,deselect-on-exit;
+							i2c-mux-idle-disconnect;
+							#address-cells = <1>;
+							#size-cells = <0>;
+ #endif
+#endif
+#ifdef CSI_SERDES_GMSL
+ #if (CSI_SERDES==2)
+							dser_c: max9296_c@48 {
+								compatible = "maxim,max9296";
+ #ifdef I2C_MUX
+								reg = <0x48>;
+ #else
+								reg = <0x4A>;
+ #endif
+								csi-mode = "2x4";
+								max-src = <CSI_SERDES>;
+								reset-gpios = <&gpio MAX1_PWDN GPIO_ACTIVE_HIGH>;
+								fsync-gpio = <6>;	// FIX:+
+							};
+ #elif (CSI_SERDES==4)
+							#define dser_c	dser_a
+ #endif
+#if defined(I2C_MUX)&&(CSI_SERDES==2)
+							/*ser_prim:*/ max9295_prim@62 {
+								compatible = "maxim,max9295";
+								reg = <0x62>;
+								is-prim-ser;
+							};
+#endif
+							ser_c: max9295_c@40 {
+								compatible = "maxim,max9295";
+#if (CSI_SERDES==2)&&defined(I2C_MUX)
+								reg = <0x40>;
+#else
+								reg = <REG(0x1a)>;
+#endif
+								nvidia,gmsl-dser-device = <&dser_c>;
+							};
+							ser_d: max9295_d@60 {
+								compatible = "maxim,max9295";
+#if (CSI_SERDES==2)&&defined(I2C_MUX)
+								reg = <0x60>;
+#else
+								reg = <REG(0x1b)>;
+#endif
+								nvidia,gmsl-dser-device = <&dser_c>;
+							};
+#elif defined(CSI_SERDES_FPDL)
+							#define dser_c	dser_a
+							ser_c: ub953@1a {
+								compatible = "ti,ub953";
+								reg = <REG(0x1a)>;
+								nvidia,gmsl-dser-device = <&dser_c>;
+							};
+							ser_d: ub953@1b {
+								compatible = "ti,ub953";
+								reg = <REG(0x1b)>;
+								nvidia,gmsl-dser-device = <&dser_c>;
+							};
+#endif
+							cam_2: otocamisp_c@1b {
+								status = "okay";
+								reg = <REG(0x1b)>;
+								def-addr = <0x1a>;
+								/* Define any required hw resources needed by driver */
+								/* ie. clocks, io pins, power sources */
+								clocks = <&bpmp TEGRA234_CLK_EXTPERIPH1>,
+									<&bpmp TEGRA234_CLK_EXTPERIPH1>;
+								clock-names = "extperiph1", "pllp_grtba";
+								mclk = "extperiph1";
+								nvidia,gmsl-ser-device = <&ser_c>;
+								nvidia,gmsl-dser-device = <&dser_c>;
+							};
+							cam_3: otocamisp_d@1c {
+								status = "okay";
+								reg = <REG(0x1c)>;
+								def-addr = <0x1a>;
+								/* Define any required hw resources needed by driver */
+								/* ie. clocks, io pins, power sources */
+								clocks = <&bpmp TEGRA234_CLK_EXTPERIPH1>,
+									<&bpmp TEGRA234_CLK_EXTPERIPH1>;
+								clock-names = "extperiph1", "pllp_grtba";
+								mclk = "extperiph1";
+								nvidia,gmsl-ser-device = <&ser_d>;
+								nvidia,gmsl-dser-device = <&dser_c>;
+							};
+#ifdef I2C_MUX
+						};
+#endif
+#ifdef I2C_MUX_TCA9543
+					};
+#endif
+				};	// I2C_BUS
+			};
+#ifdef DTS_OVERLAY
+		};
+	};
+#endif
+};
+
+#include "tegra234-camera-imx390-a00.dtsi"

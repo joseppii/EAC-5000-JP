@@ -1,0 +1,357 @@
+/ {
+#ifdef DTS_OVERLAY
+	fragment-camera@20 {
+		target-path = "/";
+		__overlay__ {
+#endif
+			capture_vi_base4: tegra-capture-vi {
+				num-channels = <CSI_NUM_CHANS>;
+				ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					port@4 {
+						reg = <4>;
+						imx390_vi_in4: endpoint {
+							vc-id = <0>;
+							port-index = <CSI_PORT_IDX(4)>;
+							bus-width = <CSI_PORT_LANES>;
+							remote-endpoint = <&imx390_csi_out4>;
+						};
+					};
+					port@5 {
+						reg = <5>;
+						imx390_vi_in5: endpoint {
+							vc-id = <VCID(1)>;
+							port-index = <CSI_PORT_IDX(5)>;
+							bus-width = <CSI_PORT_LANES>;
+							remote-endpoint = <&imx390_csi_out5>;
+						};
+					};
+					port@6 {
+						reg = <6>;
+						imx390_vi_in6: endpoint {
+							vc-id = <VCID(2)>;
+							port-index = <CSI_PORT_IDX6(6)>;
+							bus-width = <CSI_PORT_LANES>;
+							remote-endpoint = <&imx390_csi_out6>;
+						};
+					};
+					port@7 {
+						reg = <7>;
+						imx390_vi_in7: endpoint {
+							vc-id = <VCID(3)>;
+							port-index = <CSI_PORT_IDX6(7)>;
+							bus-width = <CSI_PORT_LANES>;
+							remote-endpoint = <&imx390_csi_out7>;
+						};
+					};
+				};
+			};
+
+			bus@0{
+				host1x@13e00000 {
+					csi_base4: nvcsi@15a00000 {
+						num-channels = <CSI_NUM_CHANS>;
+						#address-cells = <1>;
+						#size-cells = <0>;
+						channel@4 {
+							reg = <4>;
+							ports {
+								#address-cells = <1>;
+								#size-cells = <0>;
+								port@0 {
+									reg = <0>;
+									imx390_csi_in4: endpoint@8 {
+										port-index = <CSI_PORT_IDX(4)>;
+										bus-width = <CSI_PORT_LANES>;
+										remote-endpoint = <&imx390_cam_out4>;
+									};
+								};
+								port@1 {
+									reg = <1>;
+									imx390_csi_out4: endpoint@9 {
+										remote-endpoint = <&imx390_vi_in4>;
+									};
+								};
+							};
+						};
+						channel@5 {
+							reg = <5>;
+							ports {
+								#address-cells = <1>;
+								#size-cells = <0>;
+								port@0 {
+									reg = <0>;
+									imx390_csi_in5: endpoint@10 {
+										port-index = <CSI_PORT_IDX(5)>;
+										bus-width = <CSI_PORT_LANES>;
+										remote-endpoint = <&imx390_cam_out5>;
+									};
+								};
+								port@1 {
+									reg = <1>;
+									imx390_csi_out5: endpoint@11 {
+										remote-endpoint = <&imx390_vi_in5>;
+									};
+								};
+							};
+						};
+						channel@6 {
+							reg = <6>;
+							ports {
+								#address-cells = <1>;
+								#size-cells = <0>;
+								port@0 {
+									reg = <0>;
+									imx390_csi_in6: endpoint@12 {
+										port-index = <CSI_PORT_IDX(6)>;
+										bus-width = <CSI_PORT_LANES>;
+										remote-endpoint = <&imx390_cam_out6>;
+									};
+								};
+								port@1 {
+									reg = <1>;
+									imx390_csi_out6: endpoint@13 {
+										remote-endpoint = <&imx390_vi_in6>;
+									};
+								};
+							};
+						};
+						channel@7 {
+							reg = <7>;
+							ports {
+								#address-cells = <1>;
+								#size-cells = <0>;
+								port@0 {
+									reg = <0>;
+									imx390_csi_in7: endpoint@14 {
+										port-index = <CSI_PORT_IDX(7)>;
+										bus-width = <CSI_PORT_LANES>;
+										remote-endpoint = <&imx390_cam_out7>;
+									};
+								};
+								port@1 {
+									reg = <1>;
+									imx390_csi_out7: endpoint@15 {
+										remote-endpoint = <&imx390_vi_in7>;
+									};
+								};
+							};
+						};
+					};
+				};
+			};
+#ifdef DTS_OVERLAY
+		};
+	};
+#endif
+};
+
+			&cam_4 {
+				devnode = "video4";
+				#include "tegra194-camera-all-mode.dtsi"
+				mode0 {
+					tegra_sinterface = "serial_e";
+					vc_id = "0";
+				};
+				ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					port@0 {
+						reg = <0>;
+						imx390_cam_out4: endpoint {
+							vc-id = <0>;
+							port-index = <CSI_PORT_IDX(4)>;
+							bus-width = <CSI_PORT_LANES>;
+							remote-endpoint = <&imx390_csi_in4>;
+						};
+					};
+				};
+				gmsl-link {
+					src-csi-port = "b";
+					dst-csi-port = "a";
+					serdes-csi-link = "a";
+					csi-mode = "1x4";
+					st-vc = <0>;
+					vc-id = <0>;
+					num-lanes = <CSI_PORT_LANES>;
+					//streams = "ued-u1", "raw12";
+				};
+			};
+			&cam_5 {
+				devnode = "video5";
+				#include "tegra194-camera-all-mode.dtsi"
+				mode0 {
+					tegra_sinterface = "serial_e";
+					vc_id = "1";
+				};
+				ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					port@0 {
+						reg = <0>;
+						imx390_cam_out5: endpoint {
+							vc-id = <VCID(1)>;
+							port-index = <CSI_PORT_IDX(5)>;
+							bus-width = <CSI_PORT_LANES>;
+							remote-endpoint = <&imx390_csi_in5>;
+						};
+					};
+				};
+				gmsl-link {
+					src-csi-port = "b";
+					dst-csi-port = "a";
+					serdes-csi-link = "b";
+					csi-mode = "1x4";
+					st-vc = <0>;
+					vc-id = <VCID(1)>;
+					num-lanes = <CSI_PORT_LANES>;
+					//streams = "ued-u1", "raw12";
+				};
+			};
+			&cam_6 {
+				devnode = "video6";
+				#include "tegra194-camera-all-mode.dtsi"
+				mode0 {
+#if (CSI_SERDES==4)&&(2<CSI_PORT_CHANS)
+					tegra_sinterface = "serial_e";
+#else
+					tegra_sinterface = "serial_g";
+#endif
+					vc_id = "0";
+				};
+				ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					port@0 {
+						reg = <0>;
+						imx390_cam_out6: endpoint {
+							vc-id = <VCID(2)>;
+							port-index = <CSI_PORT_IDX(6)>;
+							bus-width = <CSI_PORT_LANES>;
+							remote-endpoint = <&imx390_csi_in6>;
+						};
+					};
+				};
+				gmsl-link {
+					src-csi-port = "b";
+#if ((2%CSI_SERDES)<CSI_PORT_CHANS)
+					dst-csi-port = "a";
+#else
+					dst-csi-port = "b";
+#endif
+#if (CSI_SERDES==2)
+					serdes-csi-link = "a";
+#else
+					serdes-csi-link = "c";
+#endif
+					csi-mode = "1x4";
+					st-vc = <0>;
+					vc-id = <VCID(2)>;
+					num-lanes = <CSI_PORT_LANES>;
+					//streams = "ued-u1", "raw12";
+				};
+			};
+			&cam_7 {
+				devnode = "video7";
+				#include "tegra194-camera-all-mode.dtsi"
+				mode0 {
+#if (CSI_SERDES==4)&&(3<CSI_PORT_CHANS)
+					tegra_sinterface = "serial_e";
+#else
+					tegra_sinterface = "serial_g";
+#endif
+					vc_id = "1";
+				};
+				ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					port@0 {
+						reg = <0>;
+						imx390_cam_out7: endpoint {
+							vc-id = <VCID(3)>;
+							port-index = <CSI_PORT_IDX(7)>;
+							bus-width = <CSI_PORT_LANES>;
+							remote-endpoint = <&imx390_csi_in7>;
+						};
+					};
+				};
+				gmsl-link {
+					src-csi-port = "b";
+#if ((3%CSI_SERDES)<CSI_PORT_CHANS)
+					dst-csi-port = "a";
+#else
+					dst-csi-port = "b";
+#endif
+#if (CSI_SERDES==2)
+					serdes-csi-link = "b";
+#else
+					serdes-csi-link = "d";
+#endif
+					csi-mode = "1x4";
+					st-vc = <0>;
+					vc-id = <VCID(3)>;
+					num-lanes = <CSI_PORT_LANES>;
+					//streams = "ued-u1", "raw12";
+				};
+			};
+
+/ {
+#ifdef DTS_OVERLAY
+	fragment-camera@23 {
+		target-path = "/";
+		__overlay__ {
+#endif
+			tcp4: tegra-camera-platform {
+				modules {
+					module4 {
+						badge = "imx390_rear4";
+						position = "rear4";	// centerleft
+						orientation = "1";
+						drivernode0 {
+							/* Declare PCL support driver (classically known as guid)  */
+							pcl_id = "v4l2_sensor";
+							/* Declare the device-tree hierarchy to driver instance */
+							sysfs-device-tree = CONCATS(/sys/firmware/devicetree/base,I2C_BUS_CAM4,/otocamisp_e@1b);
+						};
+					};
+					module5 {
+						badge = "imx390_front4";
+						position = "front4";	// centerright
+						orientation = "1";
+						drivernode0 {
+							/* Declare PCL support driver (classically known as guid)  */
+							pcl_id = "v4l2_sensor";
+							/* Declare the device-tree hierarchy to driver instance */
+							sysfs-device-tree = CONCATS(/sys/firmware/devicetree/base,I2C_BUS_CAM5,/otocamisp_f@1c);
+						};
+					};
+					module6 {
+						badge = "imx390_left4";
+						position = "left4";	// bottomleft
+						orientation = "1";
+						drivernode0 {
+							/* Declare PCL support driver (classically known as guid)  */
+							pcl_id = "v4l2_sensor";
+							/* Declare the device-tree hierarchy to driver instance */
+							sysfs-device-tree = CONCATS(/sys/firmware/devicetree/base,I2C_BUS_CAM6,/otocamisp_g@1b);
+						};
+					};
+					module7 {
+						badge = "imx390_right4";
+						position = "right4";	// bottomright
+						orientation = "1";
+						drivernode0 {
+							/* Declare PCL support driver (classically known as guid)  */
+							pcl_id = "v4l2_sensor";
+							/* Declare the device-tree hierarchy to driver instance */
+							sysfs-device-tree = CONCATS(/sys/firmware/devicetree/base,I2C_BUS_CAM7,/otocamisp_h@1c);
+						};
+					};
+				};
+			};
+#ifdef DTS_OVERLAY
+		};
+	};
+#endif
+};
